@@ -1,0 +1,72 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql", url = env("DATABASE_URL") }
+enum Role { ADMIN
+  MANAGER
+  EMPLOYEE
+}
+enum TaxCategory { A
+  B
+  C
+}
+model User { id String @id @default(uuid())
+  email String @unique
+  password String
+  role Role @default(EMPLOYEE)
+  employee Employee?
+}
+model Employee { id String @id @default(uuid())
+  userId String @unique
+  user User @relation(fields: [userId], references: [id])
+  nik String @unique
+  fullName String
+  ktpNumber String @unique
+  npwpNumber String?
+  bpjsKesehatan String?
+  bpjsKetenaga String?
+  address String
+  phoneNumber String
+  joinDate DateTime @default(now())
+  departmentId String
+  department Department @relation(fields: [departmentId], references: [id])
+  baseSalary Float
+  allowances Float @default(0)
+  taxCategory TaxCategory @default(A)
+  attendances Attendance[]
+  payrolls Payroll[]
+  leaveRequests LeaveRequest[]
+}
+model Department { id String @id @default(uuid())
+  name String @unique
+  employees Employee[]
+}
+model Attendance { id String @id @default(uuid())
+  employeeId String
+  employee Employee @relation(fields: [employeeId], references: [id])
+  clockIn DateTime @default(now())
+  clockOut DateTime?
+  latitude Float?
+  longitude Float?
+  status String
+}
+model LeaveRequest { id String @id @default(uuid())
+  employeeId String
+  employee Employee @relation(fields: [employeeId], references: [id])
+  type String
+  startDate DateTime
+  endDate DateTime
+  reason String
+  status String @default("PENDING")
+  createdAt DateTime @default(now())
+}
+model Payroll { id String @id @default(uuid())
+  employeeId String
+  employee Employee @relation(fields: [employeeId], references: [id])
+  month Int
+  year Int
+  grossSalary Float
+  bpjsDeduction Float
+  pph21Tax Float
+  netSalary Float
+  status String @default("DRAFT")
+  processedDate DateTime @default(now())
+}
